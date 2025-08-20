@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,14 +31,15 @@ public class UserRestController {
     public UserEntity create(@RequestBody UserEntity user){
         return userRepository.save(user);
     }
-
     //전체목록 조회
     @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public List<UserEntity> getUsers() {
         return userRepository.findAll();
     }
     //ID로 조회
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public UserEntity getUser(@PathVariable Long id){
         UserEntity existUser = getExistUser(id);
         return existUser;
@@ -68,6 +70,12 @@ public class UserRestController {
         UserEntity existUser = optionalUser
                 .orElseThrow(() -> new BusinessException("User Not Found", HttpStatus.NOT_FOUND));
         return existUser;
+    }
+
+    //인증 없이 접근 가능한 메서드
+    @GetMapping("/welcome")
+    public String welcome() {
+        return "Welcome this endpoint is not secure";
     }
 
 }
